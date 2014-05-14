@@ -1,0 +1,27 @@
+module Interactive where
+
+import Board
+import System.Random
+
+{-
+    Avansează pas cu pas jocul, pe baza unei strategii primite ca parametru.
+    Este folosită atât pentru jocul solitar al utilizatorului,
+    cât și pentru urmărirea pas cu pas a jocului bazat pe euristică.
+-}
+interactive :: (Board -> IO Board) -> IO ()
+interactive strategy = getStdRandom initialize >>= loop
+  where
+    loop :: Board -> IO ()
+    loop board = do
+        print board
+        if isWon board
+            then putStrLn "You won!"
+            else if isLost board
+                then putStrLn "Game over!"
+                else do
+                    movedBoard <- strategy board
+                    -- Dacă mutarea nu a produs o schimbare de configurație
+                    -- a tablei, nu se generează o celulă nouă.
+                    loop =<< if movedBoard == board
+                             then return board
+                             else getStdRandom $ placeRandomCell movedBoard
